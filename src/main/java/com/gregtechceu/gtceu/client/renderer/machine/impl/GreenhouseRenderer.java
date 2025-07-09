@@ -142,19 +142,24 @@ public class GreenhouseRenderer extends DynamicRender<IRecipeLogicMachine, Green
     }
 
     protected Optional<Block> findGrowing(GTRecipe recipe) {
-        final List<Content> allItemContents = new ArrayList<>();
+        return RECIPE_BLOCK_CACHE.apply(recipe);
+    }
+
+    private static final Function<GTRecipe, Optional<Block>> RECIPE_BLOCK_CACHE = GTMemoizer.memoizeFunctionWeakIdent(recipe -> {
+        List<Content> allItemContents = new ArrayList<>();
         allItemContents.addAll(recipe.getInputContents(ItemRecipeCapability.CAP));
         allItemContents.addAll(recipe.getTickInputContents(ItemRecipeCapability.CAP));
         allItemContents.addAll(recipe.getOutputContents(ItemRecipeCapability.CAP));
         allItemContents.addAll(recipe.getTickOutputContents(ItemRecipeCapability.CAP));
         return allItemContents.stream()
-                .map(content -> (Ingredient) content.getContent())
-                .flatMap(ingredient -> Arrays.stream(ingredient.getItems()))
+                .map(Content::getContent).map(ItemRecipeCapability.CAP::of)
+                .map(Ingredient::getItems).flatMap(Arrays::stream)
                 .map(ItemStack::getItem)
-                .filter(item -> item instanceof BlockItem)
+                .filter(BlockItem.class::isInstance)
                 .findFirst()
-                .map(item -> ((BlockItem) item).getBlock());
-    }
+                .map(BlockItem.class::cast)
+                .map(BlockItem::getBlock);
+    });
 
     protected GrowthMode growthModeForBlock(Block block) {
         if (block instanceof CropBlock || block instanceof StemBlock) return GrowthMode.AGE_7;
