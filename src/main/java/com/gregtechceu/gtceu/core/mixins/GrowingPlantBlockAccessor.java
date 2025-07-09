@@ -13,11 +13,11 @@ import org.spongepowered.asm.mixin.gen.Invoker;
 public interface GrowingPlantBlockAccessor {
 
     @Accessor("growthDirection")
-    Direction getGrowthDirection();
+    Direction gtceu$getGrowthDirection();
 
     @Invoker("getHeadBlock")
-    GrowingPlantHeadBlock getHeadBlock();
+    GrowingPlantHeadBlock gtceu$getHeadBlock();
 
     @Invoker("getBodyBlock")
-    Block getBodyBlock();
+    Block gtceu$getBodyBlock();
 }
