@@ -1,6 +1,7 @@
 package com.gregtechceu.gtceu.utils;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
@@ -21,6 +22,10 @@ public class GTMath {
 
     public static long clamp(long value, long min, long max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    public static int lerpInt(double delta, int start, int end) {
+        return start + Mth.floor(delta * (end - start));
     }
 
     public static List<ItemStack> splitStacks(ItemStack stack, long amount) {
