@@ -15,6 +15,8 @@ import com.gregtechceu.gtceu.api.pattern.util.RelativeDirection;
 
 import com.lowdragmc.lowdraglib.utils.BlockInfo;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -28,6 +30,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.common.util.LazyOptional;
@@ -38,7 +41,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,8 +62,6 @@ public class BlockPattern {
     protected final int thumbLength; // y size
     protected final int palmLength; // x size
     protected final int[] centerOffset; // x, y, z, minZ, maxZ
-    @Getter
-    protected int[] formedRepetitionCount;
 
     public BlockPattern(TraceabilityPredicate[][][] predicatesIn, RelativeDirection[] structureDir,
                         int[][] aisleRepetitions, int[] centerOffset) {
@@ -69,7 +69,6 @@ public class BlockPattern {
         this.fingerLength = predicatesIn.length;
         this.structureDir = structureDir;
         this.aisleRepetitions = aisleRepetitions;
-        this.formedRepetitionCount = new int[aisleRepetitions.length];
 
         if (this.fingerLength > 0) {
             this.thumbLength = predicatesIn[0].length;
@@ -114,6 +113,34 @@ public class BlockPattern {
     public int[] getDimensions() {
         return new int[] { fingerLength, thumbLength, palmLength };
     }
+    
+    public BoundingBox getAbsoluteBounds(@Nullable MultiblockState worldState) {
+        int minX = -centerOffset[0], maxX = palmLength - minX;
+        int minY = -centerOffset[1], maxY = thumbLength - minY;
+        int minZ = -centerOffset[3], maxZ = centerOffset[4];
+
+        if (worldState != null && worldState.getMatchContext().containsKey("formedRepetitionCount")) {
+            IntList repetitions = worldState.getMatchContext().get("formedRepetitionCount");
+            maxZ = 0;
+            for (int z = 0; z < this.fingerLength; z++) {
+                maxZ += repetitions.getInt(z);
+            }
+        }
+        return new BoundingBox(minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
+    public BoundingBox getOrientedBounds(@Nullable MultiblockState worldState, BlockPos controllerPos,
+                                         Direction frontFacing, Direction upwardsFacing, boolean isFlipped) {
+        BoundingBox absolute = getAbsoluteBounds(worldState);
+
+        BlockPos min = setActualRelativeOffset(absolute.minX(), absolute.minY(), absolute.minZ(),
+                frontFacing, upwardsFacing, isFlipped)
+                .offset(controllerPos);
+        BlockPos max = setActualRelativeOffset(absolute.maxX(), absolute.maxY(), absolute.maxZ(),
+                frontFacing, upwardsFacing, isFlipped)
+                .offset(controllerPos);
+        return BoundingBox.fromCorners(min, max);
+    }
 
     public boolean checkPatternAt(MultiblockState worldState, BlockPos centerPos, Direction frontFacing,
                                   Direction upwardsFacing, boolean isFlipped, boolean savePredicate) {
@@ -137,7 +164,7 @@ public class BlockPattern {
                         worldState.setError(null);
                         TraceabilityPredicate predicate = this.blockMatches[c][b][a];
                         BlockPos pos = setActualRelativeOffset(x, y, z, frontFacing, upwardsFacing, isFlipped)
-                                .offset(centerPos.getX(), centerPos.getY(), centerPos.getZ());
+                                .offset(centerPos);
                         if (!worldState.update(pos, predicate)) {
                             return false;
                         }
@@ -202,7 +229,10 @@ public class BlockPattern {
             }
 
             // finished checking the aisle, so store the repetitions
-            formedRepetitionCount[c] = validRepetitions;
+            // The formed repetition count can't be stored as a field in BlockPattern, as unlike 1.12,
+            // modern doesn't create an instance of it for each MetaMachine in the world.
+            matchContext.getOrCreate("formedRepetitionCount", () -> new IntArrayList(new int[aisleRepetitions.length]))
+                    .set(c, validRepetitions);
         }
 
         // Check count matches amount
@@ -239,7 +269,7 @@ public class BlockPattern {
                     for (int a = 0, x = -centerOffset[0]; a < this.palmLength; a++, x++) {
                         TraceabilityPredicate predicate = this.blockMatches[c][b][a];
                         BlockPos pos = setActualRelativeOffset(x, y, z, facing, upwardsFacing, isFlipped)
-                                .offset(centerPos.getX(), centerPos.getY(), centerPos.getZ());
+                                .offset(centerPos);
                         worldState.update(pos, predicate);
                         if (!world.isEmptyBlock(pos)) {
                             blocks.put(pos, world.getBlockState(pos));
