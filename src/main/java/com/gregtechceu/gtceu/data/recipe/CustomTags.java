@@ -121,6 +121,9 @@ public class CustomTags {
     public static final TagKey<Item> RUBBER_LOGS = TagUtil.createModItemTag("rubber_logs");
 
     public static final TagKey<Block> CLEANROOM_DOORS = TagUtil.createModBlockTag("cleanroom_doors");
+    public static final TagKey<Block> CLEANROOM_FLOORS = TagUtil.createModBlockTag("cleanroom_floors");
+    public static final TagKey<Block> CHARCOAL_PILE_IGNITER_WALLS = TagUtil.createModBlockTag(
+            "charcoal_pile_igniter_walls");
 
     public static final TagKey<Item> CHEM_BATH_WASHABLE = TagUtil.createModItemTag("chemical_bath_washable");
 
@@ -193,9 +196,8 @@ public class CustomTags {
     public static final TagKey<Block> ENDSTONE_ORE_REPLACEABLES = TagUtil.createBlockTag("end_stone_ore_replaceables");
     public static final TagKey<Block> CONCRETE_BLOCK = TagUtil.createBlockTag("concretes");
     public static final TagKey<Block> CONCRETE_POWDER_BLOCK = TagUtil.createBlockTag("concrete_powders");
-    public static final TagKey<Block> CLEANROOM_FLOORS = TagUtil.createModBlockTag("cleanroom_floors");
-    public static final TagKey<Block> CHARCOAL_PILE_IGNITER_WALLS = TagUtil.createModBlockTag(
-            "charcoal_pile_igniter_walls");
+
+    public static final TagKey<Block> TALL_PLANTS = TagUtil.createModBlockTag("tall_plants");
 
     public static final TagKey<Biome> IS_SWAMP = TagUtil.createTag(Registries.BIOME, "is_swamp", false);
     public static final TagKey<Biome> IS_SANDY = TagUtil.createModTag(Registries.BIOME, "is_sandy");
