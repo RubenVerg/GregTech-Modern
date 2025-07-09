@@ -18,7 +18,6 @@
         "ModelManagerMixin",
         "MultiPlayerGameModeMixin",
         "PlayerInfoAccessor",
-        "VariantDeserializerMixin",
         "ftbchunks.FTBChunksClientMixin",
         "ftbchunks.LargeMapScreenMixin",
         "ftbchunks.RegionMapPanelMixin",
