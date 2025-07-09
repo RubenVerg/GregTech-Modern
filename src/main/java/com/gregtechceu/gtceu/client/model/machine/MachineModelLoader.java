@@ -165,7 +165,7 @@ public class MachineModelLoader implements IGeometryLoader<UnbakedMachineModel> 
         if (array != null) {
             for (JsonElement entry : array) {
                 var render = DynamicRender.CODEC.parse(JsonOps.INSTANCE, entry)
-                        .getOrThrow(false, LOGGER::error);
+                        .getOrThrow(true, LOGGER::error);
                 dynamicRenders.add(render);
             }
             DYNAMIC_RENDERERS.put(machineId, dynamicRenders);
