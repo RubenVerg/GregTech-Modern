@@ -225,9 +225,9 @@ public class RenderUtil {
         ModelData modelData = model.getModelData(level, pos, state, ModelData.EMPTY);
 
         int blockColor = Minecraft.getInstance().getBlockColors().getColor(state, level, pos, 0);
-        float r = (float)(blockColor >> 16 & 0xFF) / 255.0F;
-        float g = (float)(blockColor >> 8 & 0xFF) / 255.0F;
-        float b = (float)(blockColor & 0xFF) / 255.0F;
+        float r = (float) (blockColor >> 16 & 0xFF) / 255.0F;
+        float g = (float) (blockColor >> 8 & 0xFF) / 255.0F;
+        float b = (float) (blockColor & 0xFF) / 255.0F;
 
         for (RenderType renderType : model.getRenderTypes(state, RandomSource.create(42), modelData)) {
             blockRenderer.getModelRenderer().renderModel(poseStack.last(),
