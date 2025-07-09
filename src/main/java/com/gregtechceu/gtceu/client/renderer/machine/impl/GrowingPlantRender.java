@@ -49,16 +49,16 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-public class GreenhouseRenderer extends DynamicRender<IRecipeLogicMachine, GreenhouseRenderer> {
+public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, GrowingPlantRender> {
 
     // spotless:off
     @SuppressWarnings("deprecation")
-    public static final Codec<GreenhouseRenderer> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ExtraCodecs.VECTOR3F.listOf().fieldOf("offsets").forGetter(GreenhouseRenderer::getOffsets),
-            BuiltInRegistries.BLOCK.byNameCodec().optionalFieldOf("growing_block").forGetter(GreenhouseRenderer::getGrowingBlock),
-            GrowthMode.CODEC.optionalFieldOf("growth_mode").forGetter(GreenhouseRenderer::getGrowthMode)
-    ).apply(instance, GreenhouseRenderer::new));
-    public static final DynamicRenderType<IRecipeLogicMachine, GreenhouseRenderer> TYPE = new DynamicRenderType<>(GreenhouseRenderer.CODEC);
+    public static final Codec<GrowingPlantRender> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            ExtraCodecs.VECTOR3F.listOf().fieldOf("offsets").forGetter(GrowingPlantRender::getOffsets),
+            BuiltInRegistries.BLOCK.byNameCodec().optionalFieldOf("growing_block").forGetter(GrowingPlantRender::getGrowingBlock),
+            GrowthMode.CODEC.optionalFieldOf("growth_mode").forGetter(GrowingPlantRender::getGrowthMode)
+    ).apply(instance, GrowingPlantRender::new));
+    public static final DynamicRenderType<IRecipeLogicMachine, GrowingPlantRender> TYPE = new DynamicRenderType<>(GrowingPlantRender.CODEC);
     // spotless:on
 
     private static final float EPSILON = 1e-25f;
@@ -70,18 +70,18 @@ public class GreenhouseRenderer extends DynamicRender<IRecipeLogicMachine, Green
     @Getter
     private final Optional<GrowthMode> growthMode;
 
-    public GreenhouseRenderer(List<Vector3f> offsets) {
+    public GrowingPlantRender(List<Vector3f> offsets) {
         this(offsets, Optional.empty(), Optional.empty());
     }
 
-    public GreenhouseRenderer(List<Vector3f> offsets, Optional<Block> growingBlock, Optional<GrowthMode> growthMode) {
+    public GrowingPlantRender(List<Vector3f> offsets, Optional<Block> growingBlock, Optional<GrowthMode> growthMode) {
         this.offsets = offsets;
         this.growingBlock = growingBlock;
         this.growthMode = growthMode;
     }
 
     @Override
-    public DynamicRenderType<IRecipeLogicMachine, GreenhouseRenderer> getType() {
+    public DynamicRenderType<IRecipeLogicMachine, GrowingPlantRender> getType() {
         return TYPE;
     }
 
