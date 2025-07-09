@@ -10,6 +10,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
+import org.joml.Vector3f;
+
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -52,5 +55,9 @@ public class DynamicRenderHelper {
 
     public static DynamicRender<?, ?> createQuantumTankRender() {
         return new QuantumTankFluidRender();
+    }
+
+    public static Supplier<DynamicRender<?, ?>> createGreenhouseRenderer(Collection<Vector3f> offsets) {
+        return () -> new GreenhouseRenderer(offsets.stream().toList());
     }
 }

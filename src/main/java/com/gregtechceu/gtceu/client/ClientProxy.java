@@ -138,6 +138,8 @@ public class ClientProxy extends CommonProxy {
         DynamicRenderManager.register(GTCEu.id("boiler_multi_parts"), BoilerMultiPartRender.TYPE);
 
         DynamicRenderManager.register(GTCEu.id("fluid_area"), FluidAreaRender.TYPE);
+
+        DynamicRenderManager.register(GTCEu.id("greenhouse"), GreenhouseRenderer.TYPE);
     }
 
     @SubscribeEvent

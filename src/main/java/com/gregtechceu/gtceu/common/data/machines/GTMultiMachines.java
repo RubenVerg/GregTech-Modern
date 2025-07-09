@@ -45,6 +45,7 @@ import net.minecraftforge.client.model.generators.ConfiguredModel;
 
 import appeng.api.networking.pathing.ChannelMode;
 import appeng.core.AEConfig;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -59,6 +60,7 @@ import static com.gregtechceu.gtceu.common.data.GTMachines.*;
 import static com.gregtechceu.gtceu.common.data.GTMaterials.DrillingFluid;
 import static com.gregtechceu.gtceu.common.data.GTRecipeModifiers.*;
 import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.DUMMY_RECIPES;
+import static com.gregtechceu.gtceu.common.data.GTRecipeTypes.LATHE_RECIPES;
 import static com.gregtechceu.gtceu.common.data.machines.GTMachineUtils.*;
 import static com.gregtechceu.gtceu.common.data.models.GTMachineModels.*;
 import static com.gregtechceu.gtceu.common.registry.GTRegistration.REGISTRATE;
@@ -1122,6 +1124,27 @@ public class GTMultiMachines {
             null,
             (builder, overlay) -> builder.workableCasingModel(
                     GTCEu.id("block/casings/solid/machine_casing_solid_steel"), overlay));
+
+    public static final MachineDefinition TEST_GREENHOUSE_DELETE_ME_PLEASE = REGISTRATE
+            .multiblock("test_greenhouse_delete_me_please", WorkableElectricMultiblockMachine::new)
+            .rotationState(RotationState.NON_Y_AXIS)
+            .recipeType(LATHE_RECIPES)
+            .pattern(definition -> FactoryBlockPattern.start()
+                    .aisle("XXXSXXX")
+                    .where('S', controller(blocks(definition.getBlock())))
+                    .where('X', blocks(CASING_STEEL_SOLID.get())
+                            .or(Predicates.autoAbilities(definition.getRecipeTypes())))
+                    .build())
+            .hasBER(true)
+            .modelProperty(RecipeLogic.STATUS_PROPERTY, RecipeLogic.Status.IDLE)
+            .model(createWorkableCasingMachineModel(GTCEu.id("block/casings/solid/machine_casing_solid_steel"),
+                    GTCEu.id("block/multiblock/gcym/large_mixer"))
+                    .andThen(b -> b.addDynamicRenderer(() -> DynamicRenderHelper.createGreenhouseRenderer(List.of(
+                            new Vector3f(-1.0f, 1.0f, 1.0f),
+                            new Vector3f(-1.0f, 1.0f, 0.0f),
+                            new Vector3f(-2.0f, 1.0f, 1.0f),
+                            new Vector3f(-2.0f, 1.0f, 0.0f))))))
+            .register();
 
     public static void init() {}
 }
