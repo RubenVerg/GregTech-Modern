@@ -168,6 +168,8 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
 
                 mode.renderFunction().renderGrowingBlock(level, pos, rotated, toDraw.state,
                         progress, bufferSource, poseStack);
+
+                poseStack.popPose();
             }
 
             poseStack.popPose();
