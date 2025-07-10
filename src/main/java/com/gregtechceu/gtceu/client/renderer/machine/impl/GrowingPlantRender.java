@@ -408,7 +408,7 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
                     final int minValue = accessor.gtceu$getMin();
                     final int maxValue = accessor.gtceu$getMax();
                     return (level, state, progress) -> {
-                        int growthStage = GTMath.lerpInt(progress, min, max);
+                        int growthStage = GTMath.lerpInt(progress, min, max + 1);
                         if (growthStage < minValue) {
                             return Collections.emptySet();
                         }
