@@ -232,7 +232,8 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
 
     public static @Nullable IntegerProperty findAgeProperty(Collection<Property<?>> properties) {
         for (Property<?> prop : properties) {
-            if ((prop.getName().equals("age") || prop.getName().equals("pickles")) && prop instanceof IntegerProperty intProp) {
+            if ((prop.getName().equals("age") || prop.getName().equals("pickles")) &&
+                    prop instanceof IntegerProperty intProp) {
                 return intProp;
             }
         }
@@ -339,7 +340,8 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
                     topState = topState.trySetValue(BlockStateProperties.HALF, Half.TOP);
                 }
 
-                return Arrays.asList(new StateWithOffset(state, bottomTranslation), new StateWithOffset(topState, translation));
+                return Arrays.asList(new StateWithOffset(state, bottomTranslation),
+                        new StateWithOffset(topState, translation));
             } else {
                 if (state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)) {
                     state = state.trySetValue(BlockStateProperties.DOUBLE_BLOCK_HALF, DoubleBlockHalf.UPPER);
@@ -402,7 +404,8 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
                     }
                     Vector3fc bodyTranslation = new Vector3f(translation.x(), translation.y() - 1, translation.z());
 
-                    return Arrays.asList(new StateWithOffset(bodyState, bodyTranslation), new StateWithOffset(headState, translation));
+                    return Arrays.asList(new StateWithOffset(bodyState, bodyTranslation),
+                            new StateWithOffset(headState, translation));
                 }
             }
         };
