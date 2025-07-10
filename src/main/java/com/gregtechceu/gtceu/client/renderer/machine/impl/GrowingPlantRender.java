@@ -140,18 +140,6 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
 
         var statesToDraw = mode.renderFunction().configureState(level, state, progress);
 
-        if (mode == GrowthMode.GROWING_PLANT) {
-            if (progress > 0.5) {
-                state = ((GrowingPlantBlockAccessor) state.getBlock()).gtceu$getHeadBlock().defaultBlockState();
-                state = state.trySetValue(BlockStateProperties.AGE_25, (int) (progress * (25 - 1e-25)));
-            } else {
-                state = ((GrowingPlantBlockAccessor) state.getBlock()).gtceu$getBodyBlock().defaultBlockState();
-            }
-            if (progress % 0.5 >= 0.25 && state.getBlock() instanceof CaveVines) {
-                state = state.trySetValue(CaveVines.BERRIES, true);
-            }
-        }
-
         for (Vector3fc offset : this.getOffsets()) {
             poseStack.pushPose();
 
@@ -342,6 +330,8 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
             Vector3fc translation = new Vector3f(0, (float) (progress * 2 - 1), 0);
 
             if (progress > 0.5) {
+                Vector3fc bottomTranslation = new Vector3f(translation.x(), translation.y() - 1, translation.z());
+
                 BlockState topState = state;
                 if (state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)) {
                     topState = topState.trySetValue(BlockStateProperties.DOUBLE_BLOCK_HALF, DoubleBlockHalf.UPPER);
@@ -349,8 +339,14 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
                     topState = topState.trySetValue(BlockStateProperties.HALF, Half.TOP);
                 }
 
-                return Arrays.asList(new StateWithOffset(state), new StateWithOffset(topState, translation));
+                return Arrays.asList(new StateWithOffset(state, bottomTranslation), new StateWithOffset(topState, translation));
             } else {
+                if (state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)) {
+                    state = state.trySetValue(BlockStateProperties.DOUBLE_BLOCK_HALF, DoubleBlockHalf.UPPER);
+                } else if (state.hasProperty(BlockStateProperties.HALF)) {
+                    state = state.trySetValue(BlockStateProperties.HALF, Half.TOP);
+                }
+
                 return Collections.singleton(new StateWithOffset(state, translation));
             }
         };
@@ -373,7 +369,7 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
 
                 Vector3fc translation = new Vector3f(0, (float) (progress * 2 - 1), 0);
 
-                if (progress > 0.5) {
+                if (progress < 0.5) {
                     BlockState headState = accessor.gtceu$getHeadBlock().defaultBlockState();
                     IntegerProperty ageProp = findAgeProperty(headState.getProperties());
                     if (ageProp != null) {
@@ -381,23 +377,32 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
                         int minValue = prop.gtceu$getMin();
                         int maxValue = prop.gtceu$getMax();
 
-                        int stage = GTMath.lerpInt(progress, minValue, maxValue);
+                        int stage = GTMath.lerpInt(progress, minValue, maxValue + 1);
                         headState = headState.trySetValue(ageProp, Math.min(stage, maxValue));
                     }
 
+                    if (progress >= 0.25 && headState.hasProperty(BlockStateProperties.BERRIES)) {
+                        headState = headState.trySetValue(CaveVines.BERRIES, true);
+                    }
+
+                    return Collections.singleton(new StateWithOffset(headState, translation));
+                } else {
+                    BlockState headState = accessor.gtceu$getHeadBlock().defaultBlockState();
+                    IntegerProperty ageProp = findAgeProperty(headState.getProperties());
+                    if (ageProp != null) {
+                        headState = headState.trySetValue(ageProp, ((IntegerPropertyAccessor) ageProp).gtceu$getMax());
+                    }
                     if (headState.hasProperty(BlockStateProperties.BERRIES)) {
                         headState = headState.trySetValue(CaveVines.BERRIES, true);
                     }
 
-                    return Arrays.asList(new StateWithOffset(state),
-                            new StateWithOffset(headState, translation));
-                } else {
-                    state = accessor.gtceu$getBodyBlock().defaultBlockState();
-                    if (progress % 0.5 >= 0.25 && state.hasProperty(BlockStateProperties.BERRIES)) {
-                        state = state.trySetValue(CaveVines.BERRIES, true);
+                    BlockState bodyState = accessor.gtceu$getBodyBlock().defaultBlockState();
+                    if (progress >= 0.75 && bodyState.hasProperty(BlockStateProperties.BERRIES)) {
+                        bodyState = bodyState.trySetValue(CaveVines.BERRIES, true);
                     }
+                    Vector3fc bodyTranslation = new Vector3f(translation.x(), translation.y() - 1, translation.z());
 
-                    return Collections.singleton(new StateWithOffset(state, translation));
+                    return Arrays.asList(new StateWithOffset(bodyState, bodyTranslation), new StateWithOffset(headState, translation));
                 }
             }
         };
