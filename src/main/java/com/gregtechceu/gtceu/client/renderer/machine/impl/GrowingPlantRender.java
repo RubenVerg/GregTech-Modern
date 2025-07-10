@@ -232,7 +232,7 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
 
     public static @Nullable IntegerProperty findAgeProperty(Collection<Property<?>> properties) {
         for (Property<?> prop : properties) {
-            if (prop.getName().equals("age") && prop instanceof IntegerProperty intProp) {
+            if ((prop.getName().equals("age") || prop.getName().equals("pickles")) && prop instanceof IntegerProperty intProp) {
                 return intProp;
             }
         }
