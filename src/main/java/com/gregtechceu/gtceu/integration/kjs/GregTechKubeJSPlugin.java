@@ -164,7 +164,7 @@ public class GregTechKubeJSPlugin extends KubeJSPlugin {
         GTRegistryInfo.MACHINE.addType("simple", KJSWrappingMachineBuilder.class,
                 (id) -> new KJSWrappingMachineBuilder(id,
                         new KJSTieredMachineBuilder(id, SimpleTieredMachine::new,
-                                SimpleTieredMachine.EDITABLE_UI_CREATOR)),
+                                SimpleTieredMachine.EDITABLE_UI_CREATOR, false)),
                 true);
         GTRegistryInfo.MACHINE.addType("custom", KJSWrappingMachineBuilder.class,
                 (id) -> new KJSWrappingMachineBuilder(id, new KJSTieredMachineBuilder(id)),
@@ -174,7 +174,7 @@ public class GregTechKubeJSPlugin extends KubeJSPlugin {
         GTRegistryInfo.MACHINE.addType("generator", KJSWrappingMachineBuilder.class,
                 (id) -> new KJSWrappingMachineBuilder(id,
                         new KJSTieredMachineBuilder(id, SimpleGeneratorMachine::new,
-                                SimpleGeneratorMachine.EDITABLE_UI_CREATOR)),
+                                SimpleGeneratorMachine.EDITABLE_UI_CREATOR, true)),
                 false);
         GTRegistryInfo.MACHINE.addType("multiblock", MultiblockMachineBuilder.class,
                 KJSWrappingMultiblockBuilder::createKJSMulti, false);
@@ -283,7 +283,6 @@ public class GregTechKubeJSPlugin extends KubeJSPlugin {
         event.register("extendedOutputItem", GTRecipeComponents.EXTENDED_OUTPUT);
 
         event.register("fluidIngredient", GTRecipeComponents.FLUID_INGREDIENT);
-        event.register("fluidIngredientOut", GTRecipeComponents.FLUID_INGREDIENT_OUT);
     }
 
     @Override
@@ -487,7 +486,6 @@ public class GregTechKubeJSPlugin extends KubeJSPlugin {
             if (o instanceof CharSequence str) return MedicalCondition.CONDITIONS.get(str.toString());
             return null;
         });
-        // jank because Rhino doesn't agree that it's an interface
         typeWrappers.registerSimple(IWorldGenLayer.RuleTestSupplier.class, o -> {
             if (o instanceof IWorldGenLayer.RuleTestSupplier supplier) return supplier;
             return () -> BlockStatePredicate.ruleTestOf(o);

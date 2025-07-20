@@ -118,6 +118,7 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
     protected long totalContinuousRunningTime;
     @Persisted
     @Setter
+    @Getter
     protected boolean suspendAfterFinish = false;
     @Getter
     protected final Map<RecipeCapability<?>, Object2IntMap<?>> chanceCaches = makeChanceCaches();
@@ -408,7 +409,7 @@ public class RecipeLogic extends MachineTrait implements IEnhancedManaged, IWork
     @Override
     public void setWorkingEnabled(boolean isWorkingAllowed) {
         if (!isWorkingAllowed) {
-            setStatus(Status.SUSPEND);
+            setSuspendAfterFinish(true);
         } else {
             if (lastRecipe != null && duration > 0) {
                 setStatus(Status.WORKING);

@@ -10,12 +10,10 @@ import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiController;
 import com.gregtechceu.gtceu.api.machine.feature.multiblock.IMultiPart;
 import com.gregtechceu.gtceu.client.model.BaseBakedModel;
 import com.gregtechceu.gtceu.client.model.IBlockEntityRendererBakedModel;
-import com.gregtechceu.gtceu.client.model.SpriteCapturer;
 import com.gregtechceu.gtceu.client.model.TextureOverrideModel;
 import com.gregtechceu.gtceu.client.model.machine.multipart.MultiPartBakedModel;
 import com.gregtechceu.gtceu.client.renderer.cover.ICoverableRenderer;
 import com.gregtechceu.gtceu.client.renderer.machine.DynamicRender;
-import com.gregtechceu.gtceu.client.util.ModelUtils;
 import com.gregtechceu.gtceu.client.util.StaticFaceBakery;
 import com.gregtechceu.gtceu.common.data.models.GTModels;
 
@@ -74,7 +72,6 @@ public final class MachineModel extends BaseBakedModel implements ICoverableRend
     private static @Nullable TextureAtlasSprite fluidOutputOverlaySprite;
     private static @Nullable TextureAtlasSprite itemOutputOverlaySprite;
     private static @Nullable TextureAtlasSprite blankSprite;
-    private static boolean overlaysInitialized = false;
 
     public static final Map<String, List<String>> TEXTURE_REMAPS = Util.make(new HashMap<>(), map -> {
         var all = List.of("all");
@@ -104,7 +101,6 @@ public final class MachineModel extends BaseBakedModel implements ICoverableRend
 
     @Setter
     private TextureAtlasSprite particleIcon = null;
-    private final SpriteCapturer spriteCapturer;
     @Setter
     private Set<String> replaceableTextures;
     @Setter
@@ -114,14 +110,12 @@ public final class MachineModel extends BaseBakedModel implements ICoverableRend
                         Map<MachineRenderState, BakedModel> modelsByState,
                         @Nullable MultiPartBakedModel multiPart,
                         List<DynamicRender<?, ?>> dynamicRenders,
-                        SpriteCapturer spriteCapturer,
                         ItemTransforms transforms, Transformation rootTransform, ModelState modelState,
                         boolean isGui3d, boolean usesBlockLight, boolean useAmbientOcclusion) {
         this.definition = definition;
         this.modelsByState = modelsByState;
         this.multiPart = multiPart;
         this.dynamicRenders = dynamicRenders;
-        this.spriteCapturer = spriteCapturer;
 
         this.transforms = transforms;
         this.rootTransform = rootTransform;
@@ -133,22 +127,13 @@ public final class MachineModel extends BaseBakedModel implements ICoverableRend
         for (DynamicRender<?, ?> render : this.dynamicRenders) {
             render.setParent(this);
         }
+    }
 
-        if (!overlaysInitialized) {
-            ModelUtils.registerAtlasStitchedEventListener(InventoryMenu.BLOCK_ATLAS, event -> {
-                spriteCapturer.getCapturedMaterials().clear();
-
-                TextureAtlas atlas = event.getAtlas();
-
-                pipeOverlaySprite = atlas.getSprite(PIPE_OVERLAY);
-                fluidOutputOverlaySprite = atlas.getSprite(FLUID_OUTPUT_OVERLAY);
-                itemOutputOverlaySprite = atlas.getSprite(ITEM_OUTPUT_OVERLAY);
-                blankSprite = atlas.getSprite(GTModels.BLANK_TEXTURE);
-
-                ICoverableRenderer.initSprites(atlas::getSprite);
-            });
-            overlaysInitialized = true;
-        }
+    public static void initSprites(TextureAtlas atlas) {
+        pipeOverlaySprite = atlas.getSprite(PIPE_OVERLAY);
+        fluidOutputOverlaySprite = atlas.getSprite(FLUID_OUTPUT_OVERLAY);
+        itemOutputOverlaySprite = atlas.getSprite(ITEM_OUTPUT_OVERLAY);
+        blankSprite = atlas.getSprite(GTModels.BLANK_TEXTURE);
     }
 
     @SuppressWarnings("deprecation")
@@ -211,10 +196,10 @@ public final class MachineModel extends BaseBakedModel implements ICoverableRend
     public @NotNull List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side,
                                              @NotNull RandomSource rand,
                                              @NotNull ModelData modelData, @Nullable RenderType renderType) {
-        // If there is a root transform, undo the ModelState transform, apply it, then
-        // re-apply the ModelState transform.
-        // This is necessary because of things like UV locking, which should only respond to the ModelState, and as such
-        // that is the only transform that should be applied during face bake.
+        // If there is a root transform, undo the ModelState transform, apply it,
+        // then re-apply the ModelState transform.
+        // This is necessary because of things like UV locking, which should only respond to the ModelState,
+        // and as such that is the only transform that should be applied during face bake.
         var postTransform = QuadTransformers.empty();
         if (!rootTransform.isIdentity()) {
             postTransform = UnbakedGeometryHelper.applyRootTransform(modelState, rootTransform);
@@ -354,25 +339,30 @@ public final class MachineModel extends BaseBakedModel implements ICoverableRend
     }
 
     private List<BakedQuad> renderPartOverrides(MachineModel controllerModel, IMultiController controller,
-                                                List<BakedQuad> originalQuads, IMultiPart part, Direction frontFacing,
+                                                List<BakedQuad> quads, IMultiPart part, Direction frontFacing,
                                                 @Nullable Direction side, RandomSource rand,
                                                 ModelData modelData, @Nullable RenderType renderType) {
         var overrides = controllerModel.textureOverrides;
 
+        List<BakedQuad> renderQuads = new LinkedList<>();
         for (var render : controllerModel.getDynamicRenders()) {
             if (render instanceof IControllerModelRenderer controllerRenderer) {
-                controllerRenderer.renderPartModel(originalQuads, controller, part, frontFacing, side,
+                controllerRenderer.renderPartModel(renderQuads, controller, part, frontFacing, side,
                         rand, modelData, renderType);
-                // assume the renderer drew the base model, and replace the override textures with empty ones
-                overrides = new HashMap<>();
-                for (String key : this.replaceableTextures) {
-                    overrides.put(key, blankSprite);
+                if (!renderQuads.isEmpty()) {
+                    // assume the renderer drew the base model, and replace the override textures with empty ones
+                    overrides = new HashMap<>();
+                    for (String key : this.replaceableTextures) {
+                        overrides.put(key, blankSprite);
+                    }
+                    break;
                 }
-                break;
+
             }
         }
         if (overrides.isEmpty()) {
-            return originalQuads;
+            quads.addAll(renderQuads);
+            return quads;
         }
 
         // parse out valid overrides
@@ -393,9 +383,9 @@ public final class MachineModel extends BaseBakedModel implements ICoverableRend
                         (o1, o2) -> o1));
 
         // actually process the sprite replacement
-        var replacementSprites = TextureOverrideModel.resolveOverrides(overrides,
-                this.spriteCapturer.getCapturedMaterials());
-        return TextureOverrideModel.retextureQuads(originalQuads, replacementSprites);
+        quads = TextureOverrideModel.retextureQuads(quads, overrides);
+        quads.addAll(renderQuads);
+        return quads;
     }
 
     @Override
