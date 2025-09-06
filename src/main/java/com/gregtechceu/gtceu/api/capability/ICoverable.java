@@ -77,7 +77,7 @@ public interface ICoverable extends ITickSubscription, IAppearance {
     CoverBehavior getCoverAtSide(Direction side);
 
     default boolean placeCoverOnSide(Direction side, ItemStack itemStack, CoverDefinition coverDefinition,
-                                     ServerPlayer player) {
+                                     @Nullable ServerPlayer player) {
         CoverBehavior coverBehavior = coverDefinition.createCoverBehavior(this, side);
         if (!canPlaceCoverOnSide(coverDefinition, side) || !coverBehavior.canAttach()) {
             return false;
@@ -210,6 +210,14 @@ public interface ICoverable extends ITickSubscription, IAppearance {
             return null;
         }
         return traceCoverSide(rayTrace);
+    }
+
+    default boolean hasDynamicCovers() {
+        for (Direction face : GTUtil.DIRECTIONS) {
+            CoverBehavior cover = this.getCoverAtSide(face);
+            if (cover != null && cover.getDynamicRenderer().get() != null) return true;
+        }
+        return false;
     }
 
     class PrimaryBoxData {

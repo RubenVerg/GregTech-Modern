@@ -2,7 +2,9 @@ package com.gregtechceu.gtceu.data.recipe;
 
 import com.gregtechceu.gtceu.api.data.tag.TagUtil;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
@@ -125,9 +127,6 @@ public class CustomTags {
     public static final TagKey<Item> RUBBER_LOGS = TagUtil.createModItemTag("rubber_logs");
 
     public static final TagKey<Block> CLEANROOM_DOORS = TagUtil.createModBlockTag("cleanroom_doors");
-    public static final TagKey<Block> CLEANROOM_FLOORS = TagUtil.createModBlockTag("cleanroom_floors");
-    public static final TagKey<Block> CHARCOAL_PILE_IGNITER_WALLS = TagUtil.createModBlockTag(
-            "charcoal_pile_igniter_walls");
 
     public static final TagKey<Item> CHEM_BATH_WASHABLE = TagUtil.createModItemTag("chemical_bath_washable");
 
@@ -200,6 +199,11 @@ public class CustomTags {
     public static final TagKey<Block> ENDSTONE_ORE_REPLACEABLES = TagUtil.createBlockTag("end_stone_ore_replaceables");
     public static final TagKey<Block> CONCRETE_BLOCK = TagUtil.createBlockTag("concretes");
     public static final TagKey<Block> CONCRETE_POWDER_BLOCK = TagUtil.createBlockTag("concrete_powders");
+    public static final TagKey<Block> CLEANROOM_FLOORS = TagUtil.createModBlockTag("cleanroom_floors");
+    public static final TagKey<Block> CHARCOAL_PILE_IGNITER_WALLS = TagUtil.createModBlockTag(
+            "charcoal_pile_igniter_walls");
+    public static final TagKey<Block> CREATE_WRENCH_PICKUP = TagUtil.optionalTag(BuiltInRegistries.BLOCK,
+            new ResourceLocation("create", "wrench_pickup"));
 
     public static final TagKey<Block> TALL_PLANTS = TagUtil.createModBlockTag("tall_plants");
 
@@ -217,4 +221,6 @@ public class CustomTags {
     public static final TagKey<Fluid> MOLTEN_FLUIDS = TagUtil.createFluidTag("molten");
     public static final TagKey<Fluid> LIQUID_FLUIDS = TagUtil.createFluidTag("liquid");
     public static final TagKey<Fluid> PLASMA_FLUIDS = TagUtil.createFluidTag("plasmatic");
+
+    public static final TagKey<Fluid> HPCA_COOLANTS = TagUtil.createModFluidTag("hpca_coolants");
 }

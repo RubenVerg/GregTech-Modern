@@ -130,7 +130,9 @@ public class GTValues {
             MODID_HERACLES = "heracles",
             MODID_GAMESTAGES = "gamestages",
             MODID_FTB_QUEST = "ftbquests",
-            MODID_CCTWEAKED = "computercraft";
+            MODID_CCTWEAKED = "computercraft",
+            MODID_ENDERIO = "enderio",
+            MODID_ENSORCELLATION = "ensorcellation";
 
     /**
      * Spray painting compat modids
@@ -279,6 +281,10 @@ public class GTValues {
             BLUE.getColor(),
             RED.getColor()
     };
+
+    // Main color for steam machines
+    public static final int VC_LP_STEAM = 0xBB8E53;
+    public static final int VC_HP_STEAM = 0x79756F;
 
     /**
      * The long names for the voltages

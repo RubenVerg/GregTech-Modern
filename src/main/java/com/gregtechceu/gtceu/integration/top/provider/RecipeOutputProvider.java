@@ -17,9 +17,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraftforge.fluids.FluidStack;
 
 import mcjty.theoneprobe.api.CompoundText;
 import mcjty.theoneprobe.api.ElementAlignment;
@@ -58,7 +60,13 @@ public class RecipeOutputProvider extends CapabilityInfoProvider<RecipeLogic> {
 
                 List<Ingredient> itemOutputs = new ArrayList<>();
                 for (var item : itemContents) {
-                    var stacks = ItemRecipeCapability.CAP.of(item.content).getItems();
+                    ItemStack[] stacks;
+                    Ingredient content = ItemRecipeCapability.CAP.of(item.content);
+                    if (content instanceof IntProviderIngredient provider) {
+                        stacks = provider.getInner().getItems();
+                    } else {
+                        stacks = content.getItems();
+                    }
                     if (stacks.length == 0) continue;
                     if (stacks[0].isEmpty()) continue;
                     var stack = stacks[0].copy();
@@ -67,7 +75,7 @@ public class RecipeOutputProvider extends CapabilityInfoProvider<RecipeLogic> {
                         int count = stack.getCount();
                         double countD = (double) count * recipe.parallels *
                                 function.getBoostedChance(item, recipeTier, chanceTier) / item.maxChance;
-                        count = countD < 1 ? 1 : (int) Math.round(countD);
+                        count = Math.max(1, (int) Math.round(countD));
                         stack.setCount(count);
                     }
                     itemOutputs.add(Ingredient.of(stack));
@@ -75,7 +83,13 @@ public class RecipeOutputProvider extends CapabilityInfoProvider<RecipeLogic> {
 
                 List<FluidIngredient> fluidOutputs = new ArrayList<>();
                 for (var fluid : fluidContents) {
-                    var stacks = FluidRecipeCapability.CAP.of(fluid.content).getStacks();
+                    FluidStack[] stacks;
+                    FluidIngredient content = FluidRecipeCapability.CAP.of(fluid.content);
+                    if (content instanceof IntProviderFluidIngredient provider) {
+                        stacks = provider.getInner().getStacks();
+                    } else {
+                        stacks = content.getStacks();
+                    }
                     if (stacks.length == 0) continue;
                     if (stacks[0].isEmpty()) continue;
                     var stack = stacks[0].copy();
@@ -84,7 +98,7 @@ public class RecipeOutputProvider extends CapabilityInfoProvider<RecipeLogic> {
                         int amount = stack.getAmount();
                         double amountD = (double) amount * recipe.parallels *
                                 function.getBoostedChance(fluid, recipeTier, chanceTier) / fluid.maxChance;
-                        amount = amountD < 1 ? 1 : (int) Math.round(amountD);
+                        amount = Math.max(1, (int) Math.round(amountD));
                         stack.setAmount(amount);
                     }
                     fluidOutputs.add(FluidIngredient.of(stack));
@@ -109,8 +123,9 @@ public class RecipeOutputProvider extends CapabilityInfoProvider<RecipeLogic> {
                         .horizontal(verticalPane.defaultLayoutStyle().alignment(ElementAlignment.ALIGN_CENTER));
                 String spacer = " ";
                 if (itemOutput instanceof IntProviderIngredient provider) {
-                    spacer += provider.getCountProvider().getMinValue() + "-" +
-                            provider.getCountProvider().getMaxValue() + " ";
+                    spacer += (Component.translatable("gtceu.gui.content.range",
+                            String.valueOf(provider.getCountProvider().getMinValue()),
+                            String.valueOf(provider.getCountProvider().getMaxValue()))) + " ";
                     provider.setItemStacks(null); // no roll
                     provider.setSampledCount(1);
                 }
@@ -130,8 +145,9 @@ public class RecipeOutputProvider extends CapabilityInfoProvider<RecipeLogic> {
                         .horizontal(verticalPane.defaultLayoutStyle().alignment(ElementAlignment.ALIGN_CENTER));
                 String spacer = " ";
                 if (fluidOutput instanceof IntProviderFluidIngredient provider) {
-                    spacer += provider.getCountProvider().getMinValue() + "-" +
-                            provider.getCountProvider().getMaxValue() + " ";
+                    spacer += (Component.translatable("gtceu.gui.content.range",
+                            String.valueOf(provider.getCountProvider().getMinValue()),
+                            String.valueOf(provider.getCountProvider().getMaxValue()))) + " ";
                     fluidOutput.setAmount(provider.getCountProvider().getMaxValue()); // no roll
                 }
                 horizontalPane.element(new FluidStackElement(fluidOutput.getStacks()[0],

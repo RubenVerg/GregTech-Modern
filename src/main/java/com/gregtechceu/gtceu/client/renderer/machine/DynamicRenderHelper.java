@@ -90,4 +90,8 @@ public class DynamicRenderHelper {
     public static DynamicRender<?, ?> createQuantumTankRender() {
         return new QuantumTankFluidRender();
     }
+
+    public static DynamicRender<?, ?> createCentralMonitorRender() {
+        return new CentralMonitorRender();
+    }
 }
