@@ -295,13 +295,14 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
         }
 
         public static GrowthMode ofIntegerProperty(String name, IntegerProperty property) {
-            IntegerPropertyAccessor accessor = (IntegerPropertyAccessor) property;
-            final int min = accessor.gtceu$getMin();
-            final int max = accessor.gtceu$getMax();
-            return ofIntegerProperty(name, property, min, max);
+            return ofIntegerProperty(name, property, OptionalInt.empty(), OptionalInt.empty());
         }
 
-        public static GrowthMode ofIntegerProperty(String name, IntegerProperty property, int min, int max) {
+			public static GrowthMode ofIntegerProperty(String name, IntegerProperty property, int min, int max) {
+				return ofIntegerProperty(name, property, OptionalInt.of(min), OptionalInt.of(max));
+			}
+
+        public static GrowthMode ofIntegerProperty(String name, IntegerProperty property, OptionalInt min, OptionalInt max) {
             GrowthMode mode = new GrowthMode(name,
                     block -> block.getStateDefinition().getProperties().contains(property),
                     RenderFunction.byIntegerProperty(property, min, max));
@@ -418,8 +419,6 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
             }
         };
 
-        TriFunction<IntegerProperty, Integer, Integer, ConfigureOnly> PROPERTY_FUNCTION_CACHE = GTMemoizer
-                .memoize((property, min, max) -> {
 				RenderFunction.ConfigureOnly STEM = (level, state, progress) -> {
 					final StemBlock block = (StemBlock) state.getBlock();
 					final int growthStage = GTMath.lerpInt(progress, 0, StemBlock.MAX_AGE + 2);
@@ -427,21 +426,41 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
 					state = state.trySetValue(StemBlock.AGE, growthStage);
 					return List.of(new StateWithOffset(state));
 				};
+
+        TriFunction<IntegerProperty, OptionalInt, OptionalInt, ConfigureOnly> PROPERTY_FUNCTION_CACHE = GTMemoizer
+                .memoize((property, setMin, setMax) -> {
                     IntegerPropertyAccessor accessor = (IntegerPropertyAccessor) property;
                     final int minValue = accessor.gtceu$getMin();
                     final int maxValue = accessor.gtceu$getMax();
+                    final int presumedMinValue = accessor.gtceu$getMin();
+                    final int presumedMaxValue = accessor.gtceu$getMax();
                     return (level, state, progress) -> {
+											final int min = setMin.orElse(presumedMinValue);
+											final int betterMaxValue = state.getBlock() instanceof CropBlock crop ? Math.max(presumedMaxValue, crop.getMaxAge()) : presumedMaxValue;
+											final int max = setMax.orElse(betterMaxValue);
                         int growthStage = GTMath.lerpInt(progress, min, max + 1);
-                        if (growthStage < minValue) {
+                        if (growthStage < presumedMinValue) {
                             return Collections.emptySet();
                         }
-                        state = state.trySetValue(property, Math.min(growthStage, maxValue));
+												if (state.getBlock() instanceof CropBlock crop) {
+													state = crop.getStateForAge(Math.min(growthStage, betterMaxValue));
+												} else {
+													state = state.trySetValue(property, Math.min(growthStage, betterMaxValue));
+												}
+												if (state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF)) {
+													final var topState = state.trySetValue(BlockStateProperties.DOUBLE_BLOCK_HALF, DoubleBlockHalf.UPPER);
+													return List.of(new StateWithOffset(state), new StateWithOffset(topState, new Vector3f(0, 1, 0)));
+												}
+												if (state.hasProperty(BlockStateProperties.HALF)) {
+													final var topState = state.trySetValue(BlockStateProperties.HALF, Half.TOP);
+													return List.of(new StateWithOffset(state), new StateWithOffset(topState, new Vector3f(0, 1, 0)));
+												}
 
                         return List.of(new StateWithOffset(state));
                     };
                 });
 
-        static RenderFunction.ConfigureOnly byIntegerProperty(IntegerProperty property, int min, int max) {
+        static RenderFunction.ConfigureOnly byIntegerProperty(IntegerProperty property, OptionalInt min, OptionalInt max) {
             return PROPERTY_FUNCTION_CACHE.apply(property, min, max);
         }
 
