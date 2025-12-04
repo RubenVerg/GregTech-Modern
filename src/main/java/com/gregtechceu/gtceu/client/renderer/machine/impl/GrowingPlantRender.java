@@ -219,18 +219,18 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
 				}
 
         BlockState state = block.defaultBlockState();
+			IntegerProperty ageProp = findAgeProperty(state.getProperties());
+			if (ageProp != null) {
+				GrowthMode mode = GrowthMode.MODE_BY_PROPERTY.get(ageProp);
+				if (mode != null) return mode;
+			}
+
         if (state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF) ||
                 state.hasProperty(BlockStateProperties.HALF) ||
                 state.is(CustomTags.TALL_PLANTS)) {
             return GrowthMode.DOUBLE_TRANSLATE;
         } else if (state.is(BlockTags.FLOWERS)) {
             return GrowthMode.TRANSLATE;
-        }
-
-        IntegerProperty ageProp = findAgeProperty(state.getProperties());
-        if (ageProp != null) {
-            GrowthMode mode = GrowthMode.MODE_BY_PROPERTY.get(ageProp);
-            if (mode != null) return mode;
         }
         // default to SCALE
         return GrowthMode.SCALE;
@@ -430,8 +430,6 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
         TriFunction<IntegerProperty, OptionalInt, OptionalInt, ConfigureOnly> PROPERTY_FUNCTION_CACHE = GTMemoizer
                 .memoize((property, setMin, setMax) -> {
                     IntegerPropertyAccessor accessor = (IntegerPropertyAccessor) property;
-                    final int minValue = accessor.gtceu$getMin();
-                    final int maxValue = accessor.gtceu$getMax();
                     final int presumedMinValue = accessor.gtceu$getMin();
                     final int presumedMaxValue = accessor.gtceu$getMax();
                     return (level, state, progress) -> {
