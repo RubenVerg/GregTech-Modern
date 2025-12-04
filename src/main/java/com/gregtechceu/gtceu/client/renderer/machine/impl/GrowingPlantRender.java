@@ -128,7 +128,9 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
             if (mode == GrowthMode.AGE_4 && GrowthMode.PICKLES.predicate().test(growing)) {
                 // special case the pickles property to work if using age_4
                 mode = GrowthMode.PICKLES;
-            } else {
+            } else if (mode == GrowthMode.AGE_7 && GrowthMode.STEM.predicate().test(growing)) {
+							mode = GrowthMode.STEM;
+						} else {
                 mode = GrowthMode.SCALE;
             }
         }
@@ -212,6 +214,10 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
         if (block instanceof GrowingPlantBlock) {
             return GrowthMode.GROWING_PLANT;
         }
+				if (block instanceof StemBlock) {
+					return GrowthMode.STEM;
+				}
+
         BlockState state = block.defaultBlockState();
         if (state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF) ||
                 state.hasProperty(BlockStateProperties.HALF) ||
@@ -255,6 +261,8 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
                 RenderFunction.DOUBLE_BLOCK);
         public static final GrowthMode GROWING_PLANT = new GrowthMode("growing_plant",
                 block -> block instanceof GrowingPlantBlock, RenderFunction.GROWING_PLANT);
+
+				public static final GrowthMode STEM = new GrowthMode("stem", block -> block instanceof StemBlock, RenderFunction.STEM);
 
         // all the different age properties. not going to add extras, though.
         public static final GrowthMode AGE_1 = ofIntegerProperty("age_1", BlockStateProperties.AGE_1);
@@ -412,6 +420,13 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
 
         TriFunction<IntegerProperty, Integer, Integer, ConfigureOnly> PROPERTY_FUNCTION_CACHE = GTMemoizer
                 .memoize((property, min, max) -> {
+				RenderFunction.ConfigureOnly STEM = (level, state, progress) -> {
+					final StemBlock block = (StemBlock) state.getBlock();
+					final int growthStage = GTMath.lerpInt(progress, 0, StemBlock.MAX_AGE + 2);
+					if (growthStage > StemBlock.MAX_AGE) return List.of(new StateWithOffset(block.getFruit().defaultBlockState()));
+					state = state.trySetValue(StemBlock.AGE, growthStage);
+					return List.of(new StateWithOffset(state));
+				};
                     IntegerPropertyAccessor accessor = (IntegerPropertyAccessor) property;
                     final int minValue = accessor.gtceu$getMin();
                     final int maxValue = accessor.gtceu$getMax();
