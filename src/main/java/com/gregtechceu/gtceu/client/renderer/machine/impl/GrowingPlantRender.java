@@ -128,9 +128,14 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
             if (mode == GrowthMode.AGE_4 && GrowthMode.PICKLES.predicate().test(growing)) {
                 // special case the pickles property to work if using age_4
                 mode = GrowthMode.PICKLES;
+            } else if (mode == GrowthMode.AGE_4 && GrowthMode.FLOWER_AMOUNT.predicate().test(growing)) {
+                // special case the flower amount property to work if using age_4
+                mode = GrowthMode.FLOWER_AMOUNT;
             } else if (mode == GrowthMode.AGE_7 && GrowthMode.STEM.predicate().test(growing)) {
+							// special case stem plants to show stems
 							mode = GrowthMode.STEM;
 						} else {
+							// generic incompatibility, use default mode
                 mode = GrowthMode.SCALE;
             }
         }
@@ -238,7 +243,7 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
 
     public static @Nullable IntegerProperty findAgeProperty(Collection<Property<?>> properties) {
         for (Property<?> prop : properties) {
-            if ((prop.getName().equals("age") || prop.getName().equals("pickles")) &&
+            if ((prop.getName().equals("age") || prop.getName().equals("pickles") || prop.getName().equals("flower_amount")) &&
                     prop instanceof IntegerProperty intProp) {
                 return intProp;
             }
@@ -275,6 +280,7 @@ public class GrowingPlantRender extends DynamicRender<IRecipeLogicMachine, Growi
         public static final GrowthMode AGE_25 = ofIntegerProperty("age_25", BlockStateProperties.AGE_25);
 
         public static final GrowthMode PICKLES = ofIntegerProperty("pickles", BlockStateProperties.PICKLES, 0, 4);
+        public static final GrowthMode FLOWER_AMOUNT = ofIntegerProperty("flower_amount", BlockStateProperties.FLOWER_AMOUNT, 0, 4);
 
         private static final Codec<GrowthMode> CODEC = Codec.STRING.comapFlatMap(name -> {
             GrowthMode mode = VALUES.get(name);
